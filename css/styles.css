@@ -1,0 +1,684 @@
+:root {
+    --bg-color: #d4d0c8; /* Classic SCADA Grey */
+    --panel-bg: #ece9d8;
+    --input-bg: #ffffff;
+    --text-color: #000;
+    --highlight-green: #00ff00;
+    --highlight-red: #ff3333;
+    --highlight-yellow: #ffff00;
+    --value-w: 70px; /* shared width for every black readout box */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 10px;
+    font-size: 12px;
+    color: var(--text-color);
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Layout Grid */
+.main-container {
+    display: grid;
+    grid-template-columns: 240px 300px 280px 1fr;
+    grid-template-rows: auto 1fr;
+    gap: 10px;
+    height: 100%;
+}
+.main-container.viz-collapsed {
+    grid-template-columns: 240px 300px 1fr;
+}
+.main-container.viz-collapsed .visualizer-panel {
+    display: none;
+}
+
+/* Visualizer panel */
+.visualizer-panel {
+    border: 1px solid #999;
+    background: #111820;
+    overflow: hidden;
+}
+.visualizer-panel canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Wellbore toggle button */
+#btnToggleViz {
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #666;
+    background: #e0e0e0;
+}
+#btnToggleViz.viz-active {
+    background: #4488cc;
+    color: white;
+    border-color: #2a5a8a;
+}
+
+/* Header */
+.header {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #e8e8e8;
+    border: 1px solid #999;
+    padding: 5px 15px;
+    margin-bottom: 5px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 18px;
+    color: #d00;
+    white-space: nowrap; /* Prevent title from wrapping */
+}
+.header > div:first-child span {
+    font-size: 11px; /* Smaller subtitle */
+    color: #555;
+}
+.sim-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.sim-controls label {
+    font-size: 11px;
+    margin: 0;
+}
+.sim-controls button {
+    padding: 5px 12px;
+    font-weight: bold;
+    font-size: 11px;
+    cursor: pointer;
+    border: 2px solid #666;
+    background: #e0e0e0;
+}
+.sim-controls button.primary { background: #007bff; color: white; border-color: #0056b3; }
+.sim-controls select {
+    padding: 4px 8px;
+    font-size: 11px;
+    border: 1px solid #666;
+    background: #fff;
+    cursor: pointer;
+}
+
+
+/* Generic Panel Styling */
+.panel {
+    border: 1px solid #999;
+    background-color: #e8e8e8;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.panel h3 {
+    margin: 0 0 5px 0;
+    font-size: 12px;
+    color: #444;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 2px;
+    text-transform: uppercase;
+}
+
+/* Status Box */
+.status-box {
+    background: #000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    text-align: center;
+    padding: 8px;
+    font-size: 14px;
+    border: 2px solid #666;
+    margin-bottom: 10px;
+}
+.status-box.error { color: red; }
+.status-box.wait { color: yellow; }
+
+/* Data Tables (readout rows) */
+.data-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+/* Rows that contain a black readout box: line every box up into one tidy
+   column. Progressive enhancement — a browser without :has() keeps the flex
+   layout above, and the uniform box styling below still applies either way. */
+.data-row:has(.data-value) {
+    display: grid;
+    grid-template-columns: 1fr var(--value-w);
+    align-items: center;
+    column-gap: 8px;
+}
+.data-label { flex: 1; }
+
+/* The black digital-readout boxes — one consistent width, font, and alignment */
+.data-value {
+    width: var(--value-w);
+    box-sizing: border-box;
+    flex-shrink: 0;
+    text-align: right;
+    background: #000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 16px;
+    padding: 2px 5px;
+    border: 1px solid #666;
+}
+
+/* Groups a readout box with a trailing indicator (e.g. the velocity dot) so
+   the box's right edge still lines up with every other box. */
+.value-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+/* Editable readout (line pressure): identical look to the boxes above, with a
+   dashed hint that it's editable. The two-class selector outranks the generic
+   input[type=number] rule that was overriding this box's font and width. */
+.data-value.data-value-edit {
+    width: var(--value-w);
+    padding: 2px 5px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border: 1px dashed #7a7a7a;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+.data-value.data-value-edit:focus {
+    border: 1px solid #00ff00;
+    outline: none;
+}
+.data-value.data-value-edit::-webkit-outer-spin-button,
+.data-value.data-value-edit::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Inputs */
+input[type="number"] {
+    width: 50px;
+    text-align: right;
+    border: 1px solid #777;
+    padding: 1px;
+    font-family: inherit;
+    font-size: inherit;
+}
+.input-group {
+    border: 1px solid #bbb;
+    padding: 5px;
+    background: #fff;
+    margin-bottom: 5px;
+}
+.input-group h4 { margin: 0 0 5px 0; font-size: 11px; background: #ddd; padding: 2px; }
+
+/* Trigger Checkboxes */
+.trigger-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+.trigger-row input[type="checkbox"] { margin: 0; flex-shrink: 0; }
+.trigger-row span:not(.trigger-actual):not(.trigger-unit) { flex: 1; }
+.trigger-row input[type="number"] { width: 40px; flex-shrink: 0; }
+.trigger-row .trigger-actual {
+    flex: 0 0 45px;
+    width: 45px;
+    text-align: right;
+    background: #000;
+    color: #00ff00;
+    font-family: monospace;
+    font-size: 12px;
+    padding: 1px 3px;
+    border: 1px solid #666;
+}
+.trigger-unit {
+    flex: 0 0 34px;   /* one fixed slot, sized to fit the widest unit ("Mcfd") */
+    width: 34px;
+    box-sizing: border-box;
+    padding-left: 3px;
+    text-align: left; /* shorter units (psi, min) get the spare space on the right */
+    font-size: 10px;
+    color: #666;
+}
+.input-with-unit {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+.trigger-row.disabled span { color: #999; }
+.trigger-row.disabled .trigger-actual { color: #666; }
+
+/* Charts */
+.chart-container {
+    background: #fff;
+    border: 1px solid #999;
+    height: 450px;
+    position: relative;
+}
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 8px;
+    font-size: 11px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+}
+.chart-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.chart-legend-color {
+    width: 20px;
+    height: 3px;
+}
+canvas { width: 100%; height: 100%; }
+
+/* Section Specific Colors mimicking screenshots */
+.section-lifting { border-left: 4px solid #00ffff; }
+.section-afterflow { border-left: 4px solid #cccccc; }
+.section-unarmed { border-left: 4px solid #ffcc00; }
+.section-armed { border-left: 4px solid #ff9999; }
+
+/* Cycle History Table Styles */
+.cycle-history-panel {
+    grid-column: 1 / -1;
+    background: #e8e8e8;
+    border: 1px solid #999;
+    padding: 8px;
+}
+.cycle-history-panel h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+.cycle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.cycle-header .last-comm {
+    font-size: 11px;
+    background: #fff;
+    border: 1px solid #999;
+    padding: 2px 8px;
+}
+.cycle-header .status-indicator {
+    background: #00ff00;
+    color: #000;
+    padding: 2px 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+.cycle-table-container {
+    overflow-x: auto;
+    margin-bottom: 10px;
+}
+.cycle-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    background: #f5f5f5;
+}
+.cycle-table th {
+    background: #d0d0d0;
+    border: 1px solid #999;
+    padding: 4px 6px;
+    text-align: center;
+    font-weight: normal;
+    white-space: nowrap;
+}
+.cycle-table td {
+    border: 1px solid #ccc;
+    padding: 3px 6px;
+    text-align: right;
+    background: #fff;
+    font-family: 'Courier New', monospace;
+}
+.cycle-table td:first-child,
+.cycle-table td:nth-child(3) {
+    text-align: left;
+}
+.cycle-table-section {
+    margin-bottom: 8px;
+}
+.cycle-table-section h4 {
+    margin: 0 0 4px 0;
+    font-size: 11px;
+    color: #444;
+    background: #ddd;
+    padding: 3px 6px;
+    border: 1px solid #bbb;
+}
+
+/* Velocity indicator styling */
+.velocity-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 5px;
+}
+.vel-fast { background: #00bfff; }
+.vel-good { background: #00ff00; }
+.vel-slow { background: #ffaa00; }
+.vel-stall { background: #ff3333; }
+
+/* Chart Below Container — arrivals table + event log side by side */
+.chart-below-container {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    height: 250px;
+}
+
+/* Arrivals Panel — matches Current Values panel style */
+.arrivals-panel {
+    flex: 0 0 170px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #999;
+    background: #e8e8e8;
+    overflow: hidden;
+}
+.arrivals-panel h4 {
+    margin: 0;
+    padding: 3px 5px;
+    font-size: 12px;
+    color: #444;
+    border-bottom: 1px solid #ccc;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+.arrivals-panel-scroll {
+    flex: 1;
+    overflow-y: auto;
+}
+.arrivals-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    color: #000;
+}
+.arrivals-table th {
+    background: #e8e8e8;
+    color: #444;
+    border-bottom: 1px solid #ccc;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: right;
+    position: sticky;
+    top: 0;
+}
+.arrivals-table th:first-child {
+    text-align: center;
+}
+.arrivals-table td {
+    padding: 3px 8px;
+    text-align: right;
+}
+.arrivals-table td:first-child {
+    text-align: center;
+    color: #888;
+}
+
+/* Event Log Styles */
+.event-log {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #999;
+    padding: 5px;
+    height: 250px;
+    overflow-y: scroll;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+}
+.event-log div {
+    padding: 2px 4px;
+    border-bottom: 1px solid #eee;
+}
+.event-log .log-warning {
+    color: #cc6600;
+    font-weight: bold;
+}
+.event-log .log-critical {
+    color: #cc0000;
+    font-weight: bold;
+}
+.event-log .log-success {
+    color: #008800;
+}
+.event-log .log-info {
+    color: #333;
+}
+
+/* Help Popover - Early 2000s tutorial style */
+.help-popover {
+    position: absolute;
+    background: #f0f0f0;
+    border: 1px solid #666;
+    box-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    padding: 8px 10px;
+    max-width: 250px;
+    font-size: 11px;
+    line-height: 1.4;
+    z-index: 500;
+}
+.help-popover.hidden {
+    display: none;
+}
+.help-popover-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ccc;
+}
+.help-popover-title {
+    font-weight: bold;
+    color: #333;
+}
+.help-popover-close {
+    background: #ddd;
+    border: 1px solid #999;
+    color: #333;
+    font-size: 10px;
+    width: 16px;
+    height: 16px;
+    line-height: 14px;
+    text-align: center;
+    cursor: pointer;
+    padding: 0;
+}
+.help-popover-close:hover {
+    background: #ccc;
+}
+.help-popover-content {
+    color: #333;
+}
+/* Clickable help items */
+[data-help] {
+    cursor: help;
+}
+[data-help]:hover {
+    background: #ffffcc;
+}
+
+/* Instructions Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-overlay.hidden {
+    display: none;
+}
+.modal-dialog {
+    background: #ece9d8;
+    border: 2px solid #666;
+    padding: 20px;
+    max-width: 520px;
+    box-shadow: 4px 4px 10px rgba(0,0,0,0.3);
+}
+.modal-header {
+    font-size: 16px;
+    font-weight: bold;
+    border-bottom: 1px solid #999;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    color: #d00;
+}
+.modal-content {
+    font-size: 12px;
+    line-height: 1.5;
+}
+.modal-content p {
+    margin: 0 0 10px 0;
+}
+.modal-content ul {
+    margin: 0 0 10px 0;
+    padding-left: 20px;
+}
+.modal-content li {
+    margin-bottom: 4px;
+}
+.modal-close {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    margin-top: 15px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #666;
+    background: #007bff;
+    color: white;
+}
+.modal-close:hover {
+    background: #0056b3;
+}
+
+/* Custom Well Modal */
+.modal-dialog-wide {
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+.cw-fieldset {
+    border: 1px solid #999;
+    margin: 0 0 12px 0;
+    padding: 8px 10px;
+}
+.cw-fieldset legend {
+    font-size: 12px;
+    font-weight: bold;
+    padding: 0 6px;
+}
+.cw-grid {
+    display: grid;
+    grid-template-columns: 220px 1fr 220px 1fr;
+    gap: 5px 10px;
+    align-items: center;
+    font-size: 12px;
+}
+.cw-grid label { text-align: right; }
+.cw-grid input, .cw-grid select {
+    font-size: 12px;
+    padding: 2px 4px;
+    border: 1px solid #999;
+    width: 100%;
+    box-sizing: border-box;
+}
+.cw-optional { font-weight: normal; color: #777; font-size: 10px; display: block; }
+.cw-error { color: #c00; font-size: 12px; margin: 3px 0; }
+.cw-warn  { color: #b8860b; font-size: 12px; margin: 3px 0; }
+.cw-note  { color: #555; font-size: 11px; font-style: italic; margin: 4px 0; }
+.cw-hint  { color: #b8860b; font-size: 10px; }
+.cw-cal-status { font-size: 13px; font-weight: bold; margin: 10px 0; }
+.cw-cal-log { font-size: 11px; color: #555; max-height: 160px; overflow-y: auto; }
+.cw-validation-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-bottom: 10px;
+}
+.cw-validation-table th, .cw-validation-table td {
+    border: 1px solid #bbb;
+    padding: 4px 8px;
+    text-align: left;
+}
+.cw-validation-table th { background: #ddd9c3; }
+.cw-badge {
+    display: inline-block;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 3px;
+    color: white;
+}
+.cw-badge-match { background: #2e7d32; }
+.cw-badge-close { background: #c87a00; }
+.cw-badge-off   { background: #c00000; }
+.cw-details { font-size: 12px; margin-top: 8px; }
+.cw-details summary { cursor: pointer; font-weight: bold; }
+#cwDerivedKnobs { padding: 6px 0 0 14px; line-height: 1.6; }
+.cw-footer {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    border-top: 1px solid #999;
+    padding-top: 10px;
+}
+.cw-footer button {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 2px solid #666;
+    background: #ece9d8;
+}
+.cw-footer button.primary { background: #007bff; color: white; }
+.cw-footer button.primary:hover { background: #0056b3; }
+.cw-manage-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    padding: 3px 0;
+}
+.cw-manage-row button { font-size: 10px; padding: 1px 8px; cursor: pointer; }
+.cw-manage-actions { display: flex; gap: 8px; align-items: center; margin-top: 6px; }
+.cw-manage-actions button { font-size: 11px; padding: 2px 10px; cursor: pointer; }
+#btnAddWell { cursor: pointer; }
