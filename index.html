@@ -10,17 +10,16 @@
     <!-- Instructions Modal -->
     <div id="instructionsModal" class="modal-overlay">
         <div class="modal-dialog">
-            <div class="modal-header">Plunger Lift Optimization Training Simulator</div>
+            <div class="modal-header">Plunger Lift Optimization Simulator</div>
             <div class="modal-content">
-                <p>Physics-based plunger lift simulator for cycle optimization and training using backpressure IPR, force balance plunger dynamics, and Turner critical velocity. Configured for a conventional barstock plunger on a 7,000 ft TVD depleted gas well.</p>
+                <p>A hands-on model of a plunger lift gas well. You tune the controller, then watch how the well responds &mdash; production, pressures, and whether each lift makes it to surface.</p>
 
-                <p>The controller mirrors RTU logic with configurable open/close triggers, load factor, timers, and close delay. The process variables update in real time next to setpoints.</p>
-
-                <p>The well is configured as a representative gas well producing approximately 150-200 Mcf/day when optimized.</p>
-
-                <p>Use the <strong>speed control</strong> to fast-forward. <strong>Click any label</strong> for a definition.</p>
+                <p>New here? Take the quick tour and we'll point out the main areas. Already familiar? Jump right in.</p>
             </div>
-            <button class="modal-close" onclick="closeInstructions()">Begin Simulation</button>
+            <div class="intro-actions">
+                <button class="tour-start-btn" onclick="closeInstructions(); startTutorial();">Take the quick tour</button>
+                <button class="tour-skip-btn" onclick="closeInstructions()">Skip &mdash; begin simulation</button>
+            </div>
         </div>
     </div>
 
@@ -497,6 +496,7 @@
     <script src="js/chart.js"></script>
     <script src="js/wellbore.js"></script>
     <script src="js/help.js"></script>
+    <script src="js/tutorial.js"></script>
     <script src="js/custom-well.js"></script>
     <script src="js/test-sweep.js"></script>
     <script src="js/test-issue1.js"></script>
