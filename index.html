@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Wellsite LMS - Plunger Lift Optimization Simulator</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <!-- Asset URLs carry ?v=N so browsers fetch updates immediately instead of
+         serving a stale cached copy. Bump N in every href/src below whenever a
+         css or js file changes. -->
+    <link rel="stylesheet" href="css/styles.css?v=2">
 </head>
 <body>
 
@@ -488,20 +491,20 @@
     </div>
 
     <!-- Scripts loaded in dependency order -->
-    <script src="js/config.js"></script>
-    <script src="js/physics.js"></script>
-    <script src="js/controller.js"></script>
-    <script src="js/simulation.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/chart.js"></script>
-    <script src="js/wellbore.js"></script>
-    <script src="js/help.js"></script>
-    <script src="js/tutorial.js"></script>
-    <script src="js/custom-well.js"></script>
-    <script src="js/test-sweep.js"></script>
-    <script src="js/test-issue1.js"></script>
-    <script src="js/test-issue2-3.js"></script>
-    <script src="js/test-triggers.js"></script>
+    <script src="js/config.js?v=2"></script>
+    <script src="js/physics.js?v=2"></script>
+    <script src="js/controller.js?v=2"></script>
+    <script src="js/simulation.js?v=2"></script>
+    <script src="js/ui.js?v=2"></script>
+    <script src="js/chart.js?v=2"></script>
+    <script src="js/wellbore.js?v=2"></script>
+    <script src="js/help.js?v=2"></script>
+    <script src="js/tutorial.js?v=2"></script>
+    <script src="js/custom-well.js?v=2"></script>
+    <script src="js/test-sweep.js?v=2"></script>
+    <script src="js/test-issue1.js?v=2"></script>
+    <script src="js/test-issue2-3.js?v=2"></script>
+    <script src="js/test-triggers.js?v=2"></script>
     <script>
         // Initialize
         updateUI();
